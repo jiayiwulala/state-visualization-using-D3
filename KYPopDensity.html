@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<svg width="960" height="1100"></svg>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+<script src="https://d3js.org/topojson.v2.min.js"></script>
+<body>
+<div id= "option1" style="position: absolute; top:100px; left: 450px; ">
+    <input name="changeColor"
+            type="button"
+            value="Change Legend Color"
+           onclick="changeColor()" />
+</div>
+<div id= "option2" style="position: absolute; top:100px; left: 600px; ">
+    <input name="Toggle State Boundary"
+            type="button"
+            value="Toggle State Boundary"
+           onclick="stateBound()" />
+</div>
+<div id= "option3" style="position: absolute; top:100px; left: 750px; ">
+    <input name="Toggle Census Tract Boundary"
+            type="button"
+            value="Toggle Census Tract Boundary"
+           onclick="censusBound()" />
+</div>
+<script>
+
+var svg = d3.select("svg"),
+    width = +svg.attr("width"),
+    height = +svg.attr("height");
+    
+//var projection = d3.geoConicConformal()
+  //.parallels([37 + 58 / 60, 38 + 58 / 60])
+  //.rotate([84 + 15 / 60, 0);
+           
+var path = d3.geoPath();
+           
+var cur = 1;
+var color = d3.scaleThreshold()
+    .domain([30, 60, 120, 360])
+    .range(["#fff7ec", "#fee8c8", "#fdd49e", "#fdbb84", "#fc8d59"]);
+
+var x = d3.scaleLinear()
+    .domain([0, 450])
+    .rangeRound([440, 950]);
+
+
+var g = svg.append("g")
+    .attr("class", "key")
+    .attr("transform", "translate(0,40)");
+
+
+g.selectAll("rect")
+  .data(color.range().map(function(d) {
+      d = color.invertExtent(d);
+      if (d[0] == null) d[0] = x.domain()[0];
+      if (d[1] == null) d[1] = x.domain()[1];
+      return d;
+    }))
+  .enter().append("rect")
+    .attr("height", 8)
+    .attr("x", function(d) { return x(d[0]); })
+    .attr("width", function(d) { return x(d[1]) - x(d[0]); })
+    .attr("fill", function(d) { return color(d[0]); });
+
+g.append("text")
+    .attr("class", "caption")
+    .attr("x", x.range()[0])
+    .attr("y", -6)
+    .attr("fill", "#000")
+    .attr("text-anchor", "start")
+    .attr("font-weight", "bold")
+    .text("Population per square mile");
+
+g.call(d3.axisBottom(x)
+    .tickSize(13)
+    .tickValues(color.domain()))
+  .select(".domain")
+    .remove();
+
+d3.json("ky-topo.json", function(error, topology) {
+  if (error) throw error;
+
+  svg.append("g")
+    .selectAll("path")
+    .data(topojson.feature(topology, topology.objects.tracts).features)
+    .enter().append("path")
+      .attr("fill", function(d) { return color(d.properties.density); })
+      .attr("d", path);
+
+  svg.append("path")
+      .datum(topojson.feature(topology, topology.objects.counties))
+      .attr("fill", "none")
+      .attr("stroke", "#000")
+      .attr("stroke-opacity", 0.3)
+      .attr("d", path);
+});
+    
+function changeColor() {
+    console.log(cur);
+    if (cur == 1){
+        color = d3.scaleThreshold()
+        .domain([30, 60, 120, 360])
+        .range(["#ffffcc","#c2e699","#78c679","#31a354","#006837"]);
+
+        var g = svg.append("g")
+            .attr("class", "key")
+            .attr("transform", "translate(0,40)");
+
+        g.selectAll("rect")
+          .data(color.range().map(function(d) {
+              d = color.invertExtent(d);
+              if (d[0] == null) d[0] = x.domain()[0];
+              if (d[1] == null) d[1] = x.domain()[1];
+              return d;
+            }))
+          .enter().append("rect")
+            .attr("height", 8)
+            .attr("x", function(d) { return x(d[0]); })
+            .attr("width", function(d) { return x(d[1]) - x(d[0]); })
+            .attr("fill", function(d) { return color(d[0]); });
+       
+        g.call(d3.axisBottom(x)
+            .tickSize(13)
+            .tickValues(color.domain()))
+          .select(".domain")
+            .remove();
+
+        d3.json("ky-topo.json", function(error, topology) {
+          if (error) throw error;
+
+          svg.append("g")
+            .selectAll("path")
+            .data(topojson.feature(topology, topology.objects.tracts).features)
+            .enter().append("path")
+              .attr("fill", function(d) { return color(d.properties.density); })
+              .attr("d", path);
+
+          svg.append("path")
+              .datum(topojson.feature(topology, topology.objects.counties))
+              .attr("fill", "none")
+              .attr("stroke", "#000")
+              .attr("stroke-opacity", 0.3)
+              .attr("d", path); 
+        });
+        cur = 2;
+    }
+    else{
+        cur = 1;
+
+        color = d3.scaleThreshold()
+            .domain([30, 60, 120, 360])
+            .range(["#fff7ec", "#fee8c8", "#fdd49e", "#fdbb84", "#fc8d59"]);
+
+        var g = svg.append("g")
+            .attr("class", "key")
+            .attr("transform", "translate(0,40)");
+
+        g.selectAll("rect")
+          .data(color.range().map(function(d) {
+              d = color.invertExtent(d);
+              if (d[0] == null) d[0] = x.domain()[0];
+              if (d[1] == null) d[1] = x.domain()[1];
+              return d;
+            }))
+          .enter().append("rect")
+            .attr("height", 8)
+            .attr("x", function(d) { return x(d[0]); })
+            .attr("width", function(d) { return x(d[1]) - x(d[0]); })
+            .attr("fill", function(d) { return color(d[0]); });
+
+        g.call(d3.axisBottom(x)
+            .tickSize(13)
+            .tickValues(color.domain()))
+          .select(".domain")
+            .remove();
+        
+        d3.json("ky-topo.json", function(error, topology) {
+          if (error) throw error;
+
+          svg.append("g")
+            .selectAll("path")
+            .data(topojson.feature(topology, topology.objects.tracts).features)
+            .enter().append("path")
+              .attr("fill", function(d) { return color(d.properties.density); })
+              .attr("d", path);
+
+          svg.append("path")
+              .datum(topojson.feature(topology, topology.objects.counties))
+              .attr("fill", "none")
+              .attr("stroke", "#000")
+              .attr("stroke-opacity", 0.3)
+              .attr("d", path); 
+        });
+    }
+
+}
+
+function stateBound(){
+    d3.json("ky-merge-topo.json", function(error, topology) {
+      if (error) throw error;
+
+      svg.append("g")
+        .selectAll("path")
+        .data(topojson.feature(topology, topology.objects.tracts).features)
+        .enter().append("path")
+          .attr("fill", function(d) { return color(d.properties.density); })
+          .attr("d", path);
+
+      svg.append("path")
+          .datum(topojson.feature(topology, topology.objects.counties))
+          .attr("fill", "none")
+          .attr("stroke", "#000")
+          .attr("stroke-opacity", 0.5)
+          .attr("d", path);
+});
+    
+}
+
+function censusBound(){
+    d3.json("ky-topo.json", function(error, topology) {
+      if (error) throw error;
+
+      svg.append("g")
+        .selectAll("path")
+        .data(topojson.feature(topology, topology.objects.tracts).features)
+        .enter().append("path")
+          .attr("fill", function(d) { return color(d.properties.density); })
+          .attr("d", path);
+
+      svg.append("path")
+          .datum(topojson.feature(topology, topology.objects.tracts))
+          .attr("fill", "None")
+          .attr("stroke", "#000")
+          .attr("stroke-opacity", 0.4)
+          .attr("d", path);
+});
+    
+}
+</script>
+</body>
